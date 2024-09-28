@@ -185,8 +185,6 @@ programs.zsh = {
       # Define your custom ls alias
       alias ls='eza --long --group-directories-first --header --icons --color=always'
 
-      autoload -Uz compinit
-      compinit
     '';
     };
   }
