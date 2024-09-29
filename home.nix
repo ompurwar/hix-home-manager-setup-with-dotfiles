@@ -40,7 +40,7 @@ in
   home.username = "omp";
 
   # Correctly set the home directory to a valid path
- home.homeDirectory = "/home/omp";
+  home.homeDirectory = "/home/omp";
 
   home.stateVersion = "24.05";
 
@@ -69,6 +69,11 @@ in
     neovim
     cmatrix
     eza
+    luajitPackages.luarocks
+    luajitPackages.penlight
+    luajitPackages.luafilesystem
+    gccgo14
+    ripgrep
   ];
 
   # home.file.".zshrc".text = ''
@@ -107,36 +112,28 @@ in
     LANG = "en_IN.UTF-8";
     LC_ALL = "en_IN.UTF-8";
     ZSH = "$HOME/.oh-my-zsh";
+    LUA_PATH = "${config.home.homeDirectory}/.luarocks/share/lua/5.1/?.lua;;";
+    LUA_CPATH = "${config.home.homeDirectory}/.luarocks/lib/lua/5.1/?.so;;";
+    FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git/*'";
+
   };
+  home.file.".luarocks/config.lua".text = ''
+    rocks_trees = {
+      { name = "user", root = "${config.home.homeDirectory}/.luarocks" }
+    }
+  '';
 
   programs.home-manager.enable = true;
-  # programs.zsh.enable = true;
-  # programs.zsh.enableCompletion = true;
-  # programs.zsh.syntaxHighlighting.enable = true;
-  # programs.neovim.enable = true;
-  # programs.neovim.package = pkgs.neovim;
   programs.atuin.enable = true;
   programs.atuin.enableFishIntegration = true;
  
- 
-programs.zsh = {
+  # Ensure ripgrep is installed
+  programs.ripgrep.enable = true;
+
+  programs.zsh = {
     enable = true;
     enableCompletion = true;
     syntaxHighlighting.enable = true;
-
-    # Enable Oh My Zsh
-    # oh-my-zsh = {
-    #   enable = true;
-    #   plugins = [
-    #     "git"
-    #     # Explicit paths to the plugins installed via Nix
-    #     (pkgs.zsh-autosuggestions + "/share/zsh-autosuggestions")
-    #     (pkgs.zsh-syntax-highlighting + "/share/zsh-syntax-highlighting")
-    #     "fzf"
-    #   ];
-    #   # Explicit path to the Powerlevel10k theme installed via Nix
-    #   theme = "${pkgs.zsh-powerlevel10k}/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme";
-    # };
 
     shellAliases = {
       update = "nix flake update";
@@ -184,7 +181,12 @@ programs.zsh = {
 
       # Define your custom ls alias
       alias ls='eza --long --group-directories-first --header --icons --color=always'
-
+      
+      eval $(luarocks path --bin)
+      
+      # kill and start picom
+      pkill picom           
+      picom -b &
     '';
     };
   }
