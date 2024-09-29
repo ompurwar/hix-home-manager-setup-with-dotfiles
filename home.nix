@@ -74,11 +74,12 @@ in
     gccgo14
     ripgrep
     tree
+    stow
   ];
-
 
   # Use `builtins.toPath` to convert the home directory path correctly
   home.file.".p10k.zsh".source = "${self.source.p10k}";
+  home.file.".config/wezterm/wezterm.lua".source = ./wezterm/.config/wezterm/wezterm.lua;
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -97,7 +98,7 @@ in
     }
   '';
 
-   programs.neovim = {
+  programs.neovim = {
     enable = true;
     # Specify neovim with Lua configuration
     viAlias = true; # optional, if you want to use `vi` as a symlink to nvim
@@ -175,6 +176,8 @@ in
       # kill and start picom
       pkill picom           
       picom -b &
+
+      clear
     '';
     };
   }
