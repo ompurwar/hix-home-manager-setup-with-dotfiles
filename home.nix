@@ -66,7 +66,6 @@ in
     bat
     tmux
     bieye
-    neovim
     cmatrix
     eza
     luajitPackages.luarocks
@@ -77,32 +76,6 @@ in
     tree
   ];
 
-  # home.file.".zshrc".text = ''
-  #   export ZSH="$HOME/.oh-my-zsh"
-  #
-  #   ZSH_THEME="powerlevel10k/powerlevel10k"
-  #   plugins=(git zsh-autosuggestions zsh-syntax-highlighting fzf)
-  #
-  #   autoload -Uz compinit
-  #   compinit
-  #
-  #   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-  #
-  #   ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
-  #
-  #   [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-  #
-  #   autoload -U bashcompinit
-  #   bashcompinit
-  #
-  #   bindkey '^R' fzf-history-widget
-  #   bindkey '^T' fzf-file-widget
-  #   bindkey '^C' fzf-cd-widget
-  #
-  #   source ~/.oh-my-zsh/custom/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-  #   source $ZSH/oh-my-zsh.sh
-  #
-  # '';
 
   # Use `builtins.toPath` to convert the home directory path correctly
   home.file.".p10k.zsh".source = "${self.source.p10k}";
@@ -123,6 +96,20 @@ in
       { name = "user", root = "${config.home.homeDirectory}/.luarocks" }
     }
   '';
+
+   programs.neovim = {
+    enable = true;
+    # Specify neovim with Lua configuration
+    viAlias = true; # optional, if you want to use `vi` as a symlink to nvim
+  };
+
+  # Use home.file to symlink each Neovim configuration file or folder
+  home.file.".config/nvim/init.lua".source = ./nvim/.config/nvim/init.lua;
+  home.file.".config/nvim/lazy-lock.json".source = ./nvim/.config/nvim/lazy-lock.json;
+  home.file.".config/nvim/LICENSE".source = ./nvim/.config/nvim/LICENSE;
+  home.file.".config/nvim/README.md".source = ./nvim/.config/nvim/README.md;
+  
+  home.file.".config/nvim/lua".source = ./nvim/.config/nvim/lua;
 
   programs.home-manager.enable = true;
   programs.atuin.enable = true;
