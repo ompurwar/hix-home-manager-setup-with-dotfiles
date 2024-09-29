@@ -74,6 +74,7 @@ in
     luajitPackages.luafilesystem
     gccgo14
     ripgrep
+    tree
   ];
 
   # home.file.".zshrc".text = ''
