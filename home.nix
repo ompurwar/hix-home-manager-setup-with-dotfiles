@@ -38,12 +38,10 @@ let
 in
 {
   home.username = "omp";
-
-  # Correctly set the home directory to a valid path
   home.homeDirectory = "/home/omp";
-
   home.stateVersion = "24.05";
 
+  # Packages
   home.packages = with pkgs; [
     hello
     cowsay
@@ -80,6 +78,11 @@ in
   # Use `builtins.toPath` to convert the home directory path correctly
   home.file.".p10k.zsh".source = "${self.source.p10k}";
   home.file.".config/wezterm/wezterm.lua".source = ./wezterm/.config/wezterm/wezterm.lua;
+  home.file.".luarocks/config.lua".text = ''
+    rocks_trees = {
+      { name = "user", root = "${config.home.homeDirectory}/.luarocks" }
+    }
+  '';
 
   home.sessionVariables = {
     EDITOR = "nvim";
@@ -92,32 +95,19 @@ in
     FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git/*'";
 
   };
-  home.file.".luarocks/config.lua".text = ''
-    rocks_trees = {
-      { name = "user", root = "${config.home.homeDirectory}/.luarocks" }
-    }
-  '';
 
+  # neovim config
   programs.neovim = {
     enable = true;
-    # Specify neovim with Lua configuration
     viAlias = true; # optional, if you want to use `vi` as a symlink to nvim
   };
-
   # Use home.file to symlink each Neovim configuration file or folder
   home.file.".config/nvim/init.lua".source = ./nvim/.config/nvim/init.lua;
   home.file.".config/nvim/lazy-lock.json".source = ./nvim/.config/nvim/lazy-lock.json;
   home.file.".config/nvim/LICENSE".source = ./nvim/.config/nvim/LICENSE;
   home.file.".config/nvim/README.md".source = ./nvim/.config/nvim/README.md;
-  
   home.file.".config/nvim/lua".source = ./nvim/.config/nvim/lua;
 
-  programs.home-manager.enable = true;
-  programs.atuin.enable = true;
-  programs.atuin.enableFishIntegration = true;
- 
-  # Ensure ripgrep is installed
-  programs.ripgrep.enable = true;
 
   programs.zsh = {
     enable = true;
@@ -179,6 +169,10 @@ in
 
       clear
     '';
-    };
-  }
+  };
+  programs.home-manager.enable = true;
 
+  programs.atuin.enable = true;
+  programs.atuin.enableFishIntegration = true;
+  programs.ripgrep.enable = true;
+}
