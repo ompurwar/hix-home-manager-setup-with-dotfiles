@@ -50,7 +50,7 @@ return {
     build = ":TSUpdate",  -- Automatically update parsers
     opts = {
       ensure_installed = {  -- Install parsers for these languages
-        "vim", "lua", "vimdoc", "norg", "html", "css",
+        "vim", "lua", "vimdoc", "norg", "html", "css", "typescript", "javascript"
       },
       highlight = { enable = true },  -- Enable highlighting for installed languages
     },
