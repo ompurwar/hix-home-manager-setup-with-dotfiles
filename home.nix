@@ -107,6 +107,7 @@ in
   home.file.".config/nvim/LICENSE".source = ./nvim/.config/nvim/LICENSE;
   home.file.".config/nvim/README.md".source = ./nvim/.config/nvim/README.md;
   home.file.".config/nvim/lua".source = ./nvim/.config/nvim/lua;
+  home.file.".tmux.cong".source = ./tmux/.tmux.conf;
 
 
   programs.zsh = {
