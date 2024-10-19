@@ -76,6 +76,7 @@ in
     mongodb-compass
     # For Chrome, you might need:
     google-chrome 
+    vscode
   ];
 
   # Use `builtins.toPath` to convert the home directory path correctly
