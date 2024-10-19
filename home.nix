@@ -73,6 +73,9 @@ in
     ripgrep
     tree
     stow
+    mongodb-compass
+    # For Chrome, you might need:
+    google-chrome 
   ];
 
   # Use `builtins.toPath` to convert the home directory path correctly
