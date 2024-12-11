@@ -77,6 +77,10 @@ in
     # For Chrome, you might need:
     google-chrome 
     vscode
+    docker_27
+    docker-compose
+    ollama
+    # code-cursor
   ];
 
   # Use `builtins.toPath` to convert the home directory path correctly
