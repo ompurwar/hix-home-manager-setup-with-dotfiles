@@ -63,7 +63,7 @@ in
     zsh-powerlevel10k
     bat
     tmux
-    bieye
+    # bieye
     cmatrix
     eza
     luajitPackages.luarocks
@@ -80,6 +80,7 @@ in
     docker_27
     docker-compose
     ollama
+    fd
     # code-cursor
   ];
 
@@ -136,48 +137,105 @@ in
 
       ZSH_THEME="powerlevel10k/powerlevel10k"
       plugins=(git zsh-autosuggestions zsh-syntax-highlighting fzf)
-      [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-      # Source the Powerlevel10k configuration
-      [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+      # Check for fzf config
+      if [ -f ~/.fzf.zsh ]; then
+        source ~/.fzf.zsh
+      else
+        echo "[initExtra] ~/.fzf.zsh not found, skipping fzf initialization"
+      fi
 
-      # Zsh auto-suggestions highlight style
+      # Source Powerlevel10k config if present
+      if [ -f ~/.p10k.zsh ]; then
+        source ~/.p10k.zsh
+      else
+        echo "[initExtra] ~/.p10k.zsh not found, skipping P10k config"
+      fi
+
       ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 
       # FZF configurations
       export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
-      export FZF_CTRL_T_COMMAND='fd --type f'
-      export FZF_ALT_C_COMMAND='fd --type d'
+      if command -v fd >/dev/null; then
+        export FZF_CTRL_T_COMMAND='fd --type f'
+        export FZF_ALT_C_COMMAND='fd --type d'
+      else
+        echo "[initExtra] 'fd' not found; fzf file/dir commands not set."
+      fi
       export FZF_CTRL_R_OPTS='--sort --height 40% --layout=reverse --border'
 
-      # Bindings for FZF widgets
-      bindkey '^R' fzf-history-widget
-      bindkey '^T' fzf-file-widget
-      bindkey '^C' fzf-cd-widget
-      
-      # Initialize zoxide
-      eval "$(zoxide init zsh)"
+      if command -v fzf >/dev/null; then
+        bindkey '^R' fzf-history-widget
+        bindkey '^T' fzf-file-widget
+        bindkey '^C' fzf-cd-widget
+      else
+        echo "[initExtra] 'fzf' not found; no keybindings for fzf widgets."
+      fi
 
-      # Initialize atuin
-      # eval "$(atuin init zsh)"
+      # Initialize zoxide if available
+      if command -v zoxide >/dev/null; then
+        eval "$(zoxide init zsh)"
+      else
+        echo "[initExtra] 'zoxide' not found, skipping."
+      fi
 
-      source ~/.oh-my-zsh/custom/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-      source $ZSH/oh-my-zsh.sh
-      
-      # Unalias ls if it's already set
+      # zsh-autocomplete plugin
+      if [ -f ~/.oh-my-zsh/custom/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh ]; then
+        source ~/.oh-my-zsh/custom/plugins/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+      else
+        echo "[initExtra] zsh-autocomplete plugin not found."
+      fi
+
+      # Source Oh My Zsh
+      if [ -f $ZSH/oh-my-zsh.sh ]; then
+        source $ZSH/oh-my-zsh.sh
+      else
+        echo "[initExtra] Oh My Zsh not found at $ZSH/oh-my-zsh.sh."
+      fi
+
+      # Unalias ls if already set
       unalias ls 2>/dev/null
 
-      # Define your custom ls alias
-      alias ls='eza --long --group-directories-first --header --icons --color=always'
-      
-      eval $(luarocks path --bin)
-      
-      # kill and start picom
-      pkill picom           
-      picom -b &
+      # Define custom ls alias if eza is available
+      if command -v eza >/dev/null; then
+        alias ls='eza --long --group-directories-first --header --icons --color=always'
+      else
+        echo "[initExtra] 'eza' not found, using default ls."
+      fi
 
-      clear
+      # If luarocks is available, set up its path
+      if command -v luarocks >/dev/null; then
+        eval $(luarocks path --bin)
+      else
+        echo "[initExtra] 'luarocks' not found, skipping Lua path setup."
+      fi
+
+      # Restart picom with a specified backend if available
+      if command -v picom >/dev/null; then
+        if command -v pkill >/dev/null; then
+          pkill picom
+        else
+          echo "[initExtra] 'pkill' not found; cannot kill previous picom instance."
+        fi
+        
+        # Try starting picom with glx backend
+        if picom -b --backend glx; then
+          echo "[initExtra] picom started with glx backend."
+        else
+          echo "[initExtra] Failed to start picom with glx, trying xrender..."
+          if picom -b --backend xrender; then
+            echo "[initExtra] picom started with xrender backend."
+          else
+            echo "[initExtra] Failed to start picom with any known backend."
+          fi
+        fi
+      else
+        echo "[initExtra] 'picom' not found, skipping compositor restart."
+      fi
+
+      
     '';
+
   };
   programs.home-manager.enable = true;
 
