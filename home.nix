@@ -81,6 +81,14 @@ in
     docker-compose
     ollama
     fd
+    # picom
+    # wezterm
+    nerd-fonts.jetbrains-mono
+    git-credential-manager
+    lazydocker
+    dnsutils
+    # DNS and networking tools
+    curl
     # code-cursor
   ];
 
@@ -118,6 +126,13 @@ in
   home.file.".config/nvim/lua".source = ./nvim/.config/nvim/lua;
   home.file.".tmux.conf".source = ./tmux/.tmux.conf;
 
+  programs.git = {
+    enable = true;
+    extraConfig = {
+      credential.helper = "manager-core";
+      credential.credentialStore = "cache";
+    };
+  };
 
   programs.zsh = {
     enable = true;
@@ -131,10 +146,17 @@ in
 
     # Use initExtra to define configurations after Oh My Zsh is loaded
     initExtra = ''
+      export LC_ALL=en_US.UTF-8
+      export DISPLAY=:0
       # Disable compfix check for completions
       export ZSH_DISABLE_COMPFIX=true
       export ZSH="$HOME/.oh-my-zsh"
+      
+      export GIT_ASKPASS=true
+      git config --global --replace-all credential.helper manager-core
+      git-credential-manager configure
 
+      
       ZSH_THEME="powerlevel10k/powerlevel10k"
       plugins=(git zsh-autosuggestions zsh-syntax-highlighting fzf)
 
