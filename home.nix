@@ -90,6 +90,12 @@ in
     # DNS and networking tools
     curl
     # code-cursor
+    # Font and display packages for WSL
+    fontconfig
+    freetype
+    xorg.libX11
+    xorg.libXext
+    xorg.libXrender
   ];
 
   # Use `builtins.toPath` to convert the home directory path correctly
@@ -101,6 +107,21 @@ in
     }
   '';
 
+  # Fontconfig for better font handling in WSL
+  home.file.".config/fontconfig/fonts.conf".text = ''
+    <?xml version="1.0"?>
+    <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+    <fontconfig>
+      <alias>
+        <family>monospace</family>
+        <prefer>
+          <family>JetBrainsMono Nerd Font</family>
+          <family>DejaVu Sans Mono</family>
+        </prefer>
+      </alias>
+    </fontconfig>
+  '';
+
   home.sessionVariables = {
     EDITOR = "nvim";
     NIXPKGS_ALLOW_UNFREE = 1;
@@ -110,7 +131,12 @@ in
     LUA_PATH = "${config.home.homeDirectory}/.luarocks/share/lua/5.1/?.lua;;";
     LUA_CPATH = "${config.home.homeDirectory}/.luarocks/lib/lua/5.1/?.so;;";
     FZF_DEFAULT_COMMAND="rg --files --hidden --glob '!.git/*'";
-
+    # Configure Git Credential Manager to use plaintext
+    GCM_CREDENTIAL_STORE = "plaintext";
+    # Force GCM to use terminal instead of GUI but allow interaction
+    GCM_GUI_PROMPT = "false";
+    GCM_INTERACTIVE = "auto";
+    # Conditional display configuration will be set in zsh initExtra
   };
 
   # neovim config
@@ -129,8 +155,13 @@ in
   programs.git = {
     enable = true;
     extraConfig = {
-      credential.helper = "manager-core";
-      credential.credentialStore = "cache";
+      init.defaultBranch = "main";
+      pull.rebase = false;
+      # Configure credential helper to use git-credential-manager
+      credential.helper = "manager";
+      credential.credentialStore = "plaintext";
+      credential.guiPrompt = "false";
+      credential.interactive = "auto";
     };
   };
 
@@ -147,16 +178,52 @@ in
     # Use initExtra to define configurations after Oh My Zsh is loaded
     initExtra = ''
       export LC_ALL=en_US.UTF-8
-      export DISPLAY=:0
+      
+      # Configure Git Credential Manager first - force terminal mode
+      export GCM_CREDENTIAL_STORE=plaintext
+      export GCM_GUI_PROMPT=false
+      export GCM_INTERACTIVE=auto
+      echo "[Git] Git Credential Manager configured for terminal-only mode with interactive prompts"
+      
+      # WSL Display configuration - works for both terminal-only and GUI WSL
+      if grep -q "microsoft" /proc/version 2>/dev/null; then
+        # We're in WSL
+        echo "[WSL] Detected WSL environment"
+        
+        # Check if we have GUI capabilities
+        if [ -n "$WSL_DISTRO_NAME" ] && command -v ip >/dev/null; then
+          # Try to get Windows host IP for display
+          WINDOWS_HOST=$(ip route list default | awk '{print $3}')
+          if [ -n "$WINDOWS_HOST" ]; then
+            export DISPLAY="$WINDOWS_HOST:0"
+            echo "[WSL] GUI mode - DISPLAY set to $DISPLAY"
+          else
+            export DISPLAY=":0"
+            echo "[WSL] Fallback - DISPLAY set to :0"
+          fi
+        else
+          # Terminal-only WSL
+          export DISPLAY=":0"
+          echo "[WSL] Terminal mode - DISPLAY set to :0"
+        fi
+        
+        # Set fontconfig for WSL
+        export FONTCONFIG_FILE="${pkgs.fontconfig.out}/etc/fonts/fonts.conf"
+        export FONTCONFIG_PATH="${pkgs.fontconfig.out}/etc/fonts"
+      else
+        # Native Linux
+        export DISPLAY=":0"
+        echo "[Linux] Native environment - DISPLAY set to :0"
+      fi
+      
       # Disable compfix check for completions
       export ZSH_DISABLE_COMPFIX=true
       export ZSH="$HOME/.oh-my-zsh"
       
-      export GIT_ASKPASS=true
-      git config --global --replace-all credential.helper manager-core
-      git-credential-manager configure
+      # Configure Git Credential Manager
+      export GCM_CREDENTIAL_STORE=plaintext
+      echo "[Git] Git Credential Manager configured to use plaintext storage"
 
-      
       ZSH_THEME="powerlevel10k/powerlevel10k"
       plugins=(git zsh-autosuggestions zsh-syntax-highlighting fzf)
 
